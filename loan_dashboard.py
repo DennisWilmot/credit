@@ -45,6 +45,7 @@ This project focuses on building a loan risk assessment and interest rate optimi
 Using the predicted default probability (PD), along with assumptions on Loss Given Default (LGD) and Exposure at Default (EAD), the platform calculates the expected loss (EL) for each loan. A risk tolerance threshold is defined by the user, representing the maximum expected loss they are willing to accept. If the expected loss exceeds this threshold, the system increases the interest rate to mitigate the higher risk, ensuring that loans remain profitable.
 
 Key steps include:
+- Creating synthetic data for borrower attributes and loan terms.
 - Data Input: Borrower attributes such as income, credit score, and loan amount are entered.
 - Default Prediction: A logistic regression model predicts the likelihood of default.
 - Expected Loss Calculation: The platform calculates the expected loss using the formula (EL = PD * LGD * EAD).
@@ -54,10 +55,15 @@ Key steps include:
 This platform enables lenders to make informed decisions, adjusting loan terms dynamically to ensure both profitability and risk management.
 """
 
+synthetic_data_text = "created synthetic data for 1000 loan applicants with attributes such as income, credit score, employment type, loan amount, loan duration, and debt-to-income ratio. The interest rate was calculated based on the credit score, loan amount, and debt-to-income ratio, with additional assumptions for default probability and loss given default. Income was normally distributed with a mean of $50,000 and a standard deviation of $15,000. Credit scores ranged from 300 to 850, and employment types included full-time, part-time, and self-employed. Loan amounts varied from $1,000 to $50,000, with durations between 6 and 60 months. Debt-to-income ratios ranged from 0.1 to 0.5."
+
+
 # Display project description in a read-only text area
 st.text_area("Project Description", project_description, height=300)
 # Streamlit UI
 st.title("Explore Synthetic Loan Data")
+st.text_area("Synthetic Data Generation", synthetic_data_text, height=200)
+
 
 # Generate synthetic data
 data = generate_synthetic_data()
@@ -118,6 +124,11 @@ logistic_model.fit(X_train_default, y_train_default)
 
 st.title('Loan Parameter Optimizer - SeedJA')
 
+
+select_model_text = """I trained three different models to predict the interest rate for a loan based on borrower attributes. Select which model you'd like to use"""
+default_text = """I also trained a logistic regression model to predict the probability of default based on the same borrower attributes. This helps us calculate the expected loss for each loan."""
+st.text_area("Model Selection", select_model_text, height=100)
+
 # Model selection
 model_choice = st.radio(
     "Select a model:",
@@ -154,12 +165,16 @@ monthly_payment = loan_amount * (1 + predicted_interest_rate / 100) / loan_durat
 # Logistic regression for default prediction
 default_probability = logistic_model.predict_proba(input_data)[0][1]
 st.subheader(f'Default Probability: {default_probability:.2f}')
+st.text_area("Default Prediction", default_text, height=100)
+
 
 # Calculate the expected loss (EL = PD * LGD * EAD)
 LGD = 0.3  # Assume loss given default is 30% of the loan amount
 EAD = loan_amount  # Exposure at default is the total loan amount
 expected_loss = default_probability * LGD * EAD
 st.subheader(f'Expected Loss: ${expected_loss:.2f}')
+expected_loss_text = """The expected loss is calculated based on the default probability, loss given default, and exposure at default. This represents the estimated loss that the lender may incur if the borrower defaults on the loan."""
+st.text_area("Expected Loss Calculation", expected_loss_text, height=100)
 
 # Quantify risk tolerance
 risk_threshold = st.slider('Risk Tolerance (Max Expected Loss)', 0.0, 5000.0, 1000.0)
@@ -167,6 +182,11 @@ if expected_loss > risk_threshold:
     predicted_interest_rate += 2  # Increase interest rate for higher risk
     st.warning(f"Loan refinanced due to high expected loss. New Interest Rate: {predicted_interest_rate:.2f}%")
 
+risk_threshold_text = """The risk tolerance threshold represents the maximum expected loss that the lender is willing to accept for a loan. If the expected loss exceeds this threshold, the system increases the interest rate to mitigate the higher risk."""
+st.text_area("Risk Tolerance", risk_threshold_text, height=100)
+
 st.subheader(f'Optimal Interest Rate: {predicted_interest_rate:.2f}%')
+optmia_interest_rate_text = """The optimal interest rate is calculated based on the borrower attributes and the risk tolerance threshold. If the expected loss exceeds the risk tolerance, the interest rate is increased to compensate for the elevated risk."""
+st.text_area("Optimal Interest Rate", optmia_interest_rate_text, height=100)
 st.subheader(f'Estimated Monthly Payment: ${monthly_payment:.2f}')
 
